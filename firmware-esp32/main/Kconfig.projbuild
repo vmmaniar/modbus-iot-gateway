@@ -1,0 +1,23 @@
+menu "Modbus IoT Gateway"
+
+    config WIFI_SSID
+        string "Wi-Fi SSID"
+        default "myssid"
+
+    config WIFI_PASSWORD
+        string "Wi-Fi password"
+        default "mypassword"
+
+    config AWS_IOT_ENDPOINT
+        string "AWS IoT Core endpoint"
+        default "mqtts://xxxxxxxxxxxxx-ats.iot.us-east-1.amazonaws.com:8883"
+
+    config AWS_IOT_THING_NAME
+        string "AWS IoT thing name"
+        default "gateway-001"
+
+    config MQTT_TOPIC_TELEMETRY
+        string "Telemetry topic"
+        default "iot/gateway-001/telemetry"
+
+endmenu
