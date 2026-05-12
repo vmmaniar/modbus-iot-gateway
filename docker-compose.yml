@@ -1,0 +1,121 @@
+# Full local cloud stack for the Modbus IoT Gateway.
+#
+# Up:    docker compose up
+# Down:  docker compose down -v
+#
+# Services:
+#   mosquitto   — MQTT broker with self-signed TLS (mirrors the AWS IoT mTLS model)
+#   telegraf    — subscribes to telemetry, decodes CBOR, ships to InfluxDB
+#   influxdb    — time-series database (token: see docker/influxdb/init/init.sh)
+#   grafana     — dashboards (provisioned automatically)
+#   tcp-slave   — Python Modbus TCP slave simulator (firmware-twin's data source)
+#   producer    — firmware-twin running as a service, publishing CBOR over MQTT
+#
+# Bring-up order is enforced via depends_on with `condition: service_healthy`
+# where each upstream service exposes a healthcheck.
+
+services:
+  mosquitto:
+    image: eclipse-mosquitto:2.0
+    container_name: modbus-mosquitto
+    ports:
+      - "1883:1883"   # plaintext (testing only)
+      - "8883:8883"   # TLS (production-equivalent)
+    volumes:
+      - ./docker/mosquitto/config:/mosquitto/config:ro
+      - ./docker/mosquitto/certs:/mosquitto/certs:ro
+      - mosquitto_data:/mosquitto/data
+      - mosquitto_log:/mosquitto/log
+    healthcheck:
+      test: ["CMD-SHELL", "mosquitto_sub -h localhost -p 1883 -t '$$SYS/#' -C 1 -W 2 || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+
+  influxdb:
+    image: influxdb:2.7
+    container_name: modbus-influxdb
+    ports:
+      - "8086:8086"
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: admin
+      DOCKER_INFLUXDB_INIT_PASSWORD: admin1234
+      DOCKER_INFLUXDB_INIT_ORG: maniar
+      DOCKER_INFLUXDB_INIT_BUCKET: gateway
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: dev-token-do-not-use-in-prod
+    volumes:
+      - influxdb_data:/var/lib/influxdb2
+    healthcheck:
+      test: ["CMD", "influx", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  telegraf:
+    image: telegraf:1.31
+    container_name: modbus-telegraf
+    depends_on:
+      mosquitto:
+        condition: service_healthy
+      influxdb:
+        condition: service_healthy
+    volumes:
+      - ./docker/telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+    environment:
+      INFLUX_TOKEN: dev-token-do-not-use-in-prod
+
+  grafana:
+    image: grafana/grafana-oss:11.2.0
+    container_name: modbus-grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      influxdb:
+        condition: service_healthy
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+    volumes:
+      - ./docker/grafana/provisioning:/etc/grafana/provisioning:ro
+      - grafana_data:/var/lib/grafana
+
+  tcp-slave:
+    build:
+      context: .
+      dockerfile: docker/producer/Dockerfile
+    container_name: modbus-tcp-slave
+    command: ["python", "-m", "simulator.tcp_slave", "--host", "0.0.0.0", "--port", "5020"]
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import socket; s=socket.socket(); s.settimeout(1); s.connect(('localhost',5020)); s.close()\""]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  producer:
+    build:
+      context: .
+      dockerfile: docker/producer/Dockerfile
+    container_name: modbus-producer
+    depends_on:
+      mosquitto:
+        condition: service_healthy
+      tcp-slave:
+        condition: service_healthy
+    environment:
+      MODBUS_HOST: tcp-slave
+      MODBUS_PORT: "5020"
+      MQTT_HOST: mosquitto
+      MQTT_PORT: "1883"
+      MQTT_TOPIC: iot/gateway-001/telemetry
+    command: ["python", "-m", "docker.producer.producer"]
+
+volumes:
+  mosquitto_data:
+  mosquitto_log:
+  influxdb_data:
+  grafana_data:

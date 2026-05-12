@@ -1,0 +1,60 @@
+{
+  "annotations": { "list": [] },
+  "editable": false,
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Tank pressure (Pa)",
+      "datasource": { "type": "influxdb", "uid": "influxdb" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "query": "from(bucket: \"gateway\")\n  |> range(start: -5m)\n  |> filter(fn: (r) => r.label == \"tank_pressure\")\n  |> filter(fn: (r) => r._field == \"pressure_pa\")",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Ambient temperature (°C)",
+      "datasource": { "type": "influxdb", "uid": "influxdb" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "targets": [
+        {
+          "query": "from(bucket: \"gateway\")\n  |> range(start: -5m)\n  |> filter(fn: (r) => r.label == \"ambient_temp\")\n  |> filter(fn: (r) => r._field == \"temp_c\")",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Flow rate (m³/h)",
+      "datasource": { "type": "influxdb", "uid": "influxdb" },
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 8 },
+      "targets": [
+        {
+          "query": "from(bucket: \"gateway\")\n  |> range(start: -1m)\n  |> filter(fn: (r) => r.label == \"flow_meter\")\n  |> filter(fn: (r) => r._field == \"flow_m3h\")\n  |> last()",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Totalizer (m³)",
+      "datasource": { "type": "influxdb", "uid": "influxdb" },
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 8 },
+      "targets": [
+        {
+          "query": "from(bucket: \"gateway\")\n  |> range(start: -1m)\n  |> filter(fn: (r) => r.label == \"flow_meter\")\n  |> filter(fn: (r) => r._field == \"totalizer_m3\")\n  |> last()",
+          "refId": "A"
+        }
+      ]
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 38,
+  "tags": ["modbus", "iot", "gateway"],
+  "time": { "from": "now-5m", "to": "now" },
+  "title": "Modbus IoT Gateway",
+  "version": 1
+}

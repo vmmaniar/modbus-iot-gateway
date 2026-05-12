@@ -85,6 +85,20 @@ idf.py build flash monitor
 
 You'll also need to provision the device certificate — see [docs/aws_iot_provisioning.md](docs/aws_iot_provisioning.md).
 
+## Full local stack (no AWS account needed)
+
+```bash
+docker compose up
+```
+
+Brings up Mosquitto (MQTT broker with TLS), Telegraf (MQTT → InfluxDB), InfluxDB 2.7, Grafana (with the gateway dashboard auto-provisioned), the Python TCP slave simulator, and the producer service that runs the firmware-twin as if it were the deployed gateway. Open http://localhost:3000 (admin/admin) and watch telemetry stream into the dashboard within ~30 seconds.
+
+See [BUILD_PLAN.md](BUILD_PLAN.md) for the complete software + KiCad design plan.
+
+## KiCad design package
+
+Open [hardware/kicad/modbus-iot-gateway.kicad_pro](hardware/kicad/) in **KiCad 8**. The project file ships with all design rules and net classes pre-configured (5/5 mil JLCPCB 4-layer rules, 100 Ω RS-485 / 90 Ω USB diff-pair classes, named-net regex matching for power-class routing). The schematic and PCB layout are captured per the comprehensive [hardware/kicad/design_spec.md](hardware/kicad/design_spec.md) — every component, every net, every footprint.
+
 ## Why dual-MCU?
 
 * **Security boundary.** Wi-Fi/Internet-facing code lives on the ESP32. The STM32 has no IP stack, no certs, no remote attack surface — it just talks Modbus on a dumb wire.

@@ -1,0 +1,6 @@
+# Hierarchical schematic sheets are authored in the KiCad GUI per design_spec.md.
+# When the schematic is captured, three sheets land here:
+#   power.kicad_sch
+#   digital.kicad_sch
+#   rs485.kicad_sch
+# plus the root modbus-iot-gateway.kicad_sch at the parent directory.

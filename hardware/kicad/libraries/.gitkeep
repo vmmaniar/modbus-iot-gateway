@@ -1,0 +1,5 @@
+# Custom symbols + footprints land here for parts not in the KiCad stdlib.
+# Known candidates (verify against KiCad 8 stdlib before authoring custom):
+#   - ADM2587EBRWZ        — Analog Devices isolated RS-485 transceiver (SOIC-20W)
+#   - ESP32-WROOM-32E     — usually in KiCad's RF_Module library, but the
+#                            antenna keep-out polygon may need a custom variant.
