@@ -1,0 +1,45 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  python-tests:
+    name: Python firmware-twin + simulator tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: simulator
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Run pytest
+        run: pytest -v
+
+  stm32-firmware-build:
+    name: STM32 firmware build (smoke check, no flash)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install ARM toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-arm-none-eabi
+      - name: Verify toolchain
+        run: arm-none-eabi-gcc --version
+      # NOTE: the scaffold Makefile expects CMSIS + ST HAL headers that aren't
+      # vendored in this repo yet. Once they are, this job will compile the
+      # firmware. For now, this step is informational only.
+      - name: Compile-check available sources
+        run: |
+          echo "TODO: vendor CMSIS + ST HAL headers, then enable:"
+          echo "  cd firmware-stm32 && make -j"

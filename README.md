@@ -34,11 +34,31 @@ docs/             Protocol bridge spec, AWS IoT provisioning, DFM checklist
 
 ## Quick start
 
-### Run the simulator (no hardware needed)
+### Phase 0: end-to-end software path (no hardware, no cables)
+
+`simulator/` contains a Python twin of the entire firmware data path — Modbus master polling, CRC-16, CBOR encoding, and the 0x7E/length/XOR/0x7F framing protocol — plus a host-side decoder that mirrors the ESP32's `bridge_rx` state machine. The pytest suite spins up the TCP simulator and drives the full round-trip in software:
 
 ```bash
 cd simulator
 pip install -r requirements.txt
+pytest -v                          # 17 tests in <5 s
+```
+
+A green run proves: Modbus polling works, the CRC matches the `crcmod` reference for 1000 random payloads, the CBOR encoder is byte-compatible with `cbor2`, the framing checksum and state machine reject corrupted/garbage input correctly, and the simulator's simulated sine-wave pressure values arrive intact through the full chain.
+
+To watch live telemetry without tests:
+
+```bash
+python tcp_slave.py --port 5020 &           # background: TCP simulator
+python -c "from firmware_twin import *; \
+           t = TcpTransport('127.0.0.1', 5020); \
+           [print(r.entry.label, r.registers) for r in run_master(t, max_readings=8)]"
+```
+
+### Run the RTU simulator (requires a USB-RS485 dongle)
+
+```bash
+cd simulator
 python fake_slave.py --port COM5  # or /dev/ttyUSB0
 ```
 
