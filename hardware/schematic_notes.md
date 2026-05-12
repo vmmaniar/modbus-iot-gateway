@@ -4,13 +4,13 @@
 
 ```
    24V industrial bus  →  PTC fuse  →  reverse-polarity diode  →  LM2596 → 5V → AMS1117 → 3V3_DIG
-                                                                            └→ AMS1117 → 3V3_ISO (only for ADM3251E primary side)
-   RS-485 A/B  →  TVS array  →  ADM3251E isolated transceiver  →  STM32 USART1
+                                                                            └→ AMS1117 → 3V3_ISO (only for ADM2587E primary side)
+   RS-485 A/B  →  TVS array  →  ADM2587E isolated transceiver  →  STM32 USART1
                                             ┊
                                   iso-barrier (2.5 kV)
 ```
 
-The ADM3251E has integrated isoPower DC/DC, so the bus-side 3V3_ISO rail is generated on the IC and does not cross the isolation barrier.
+The ADM2587E has integrated isoPower DC/DC, so the bus-side 3V3_ISO rail is generated on the IC and does not cross the isolation barrier.
 
 ## Reset and clocking
 

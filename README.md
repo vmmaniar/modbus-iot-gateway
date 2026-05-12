@@ -6,7 +6,7 @@ A dual-MCU IIoT edge gateway. An STM32F103 polls industrial sensors over RS-485 
 
 ```
 +----------------+   RS-485    +-------------+   UART     +-------------+   MQTT-TLS   +-------------+
-| Modbus slaves  | <---------> | ADM3251E    | <--------> | STM32F103   | <---------> | ESP32-WROOM |
+| Modbus slaves  | <---------> | ADM2587E    | <--------> | STM32F103   | <---------> | ESP32-WROOM |
 | (PLC sensors,  |  twisted-   | isolator    |  9600-8N1  | Modbus RTU  |  115200     |  Wi-Fi STA  |
 |  energy meters)|    pair     | + TVS       |   master   |  master     |             |  + AWS IoT  |
 +----------------+             +-------------+            +-------------+             +-------------+
@@ -20,7 +20,7 @@ A dual-MCU IIoT edge gateway. An STM32F103 polls industrial sensors over RS-485 
 
 * **STM32 layer** runs FreeRTOS with two tasks: a Modbus RTU master that round-robins through a configurable slave table, and a bridge task that frames each reading as a CBOR record and pipes it to the ESP32 over UART.
 * **ESP32 layer** runs ESP-IDF, holds AWS IoT certs in NVS, and publishes to `iot/<device-id>/telemetry` over MQTT-TLS on port 8883. Local store-and-forward queue handles brief Wi-Fi outages.
-* **Hardware** isolates the RS-485 transceiver from the digital side via an ADM3251E (2.5 kV ground isolation + integrated DC/DC), with PESD3V3 TVS on the differential pair and a self-resetting PTC fuse on the 24 V loop power tap.
+* **Hardware** isolates the RS-485 transceiver from the digital side via an ADM2587E (2.5 kV ground isolation + integrated DC/DC), with PESD3V3 TVS on the differential pair and a self-resetting PTC fuse on the 24 V loop power tap.
 
 ## Repository layout
 
@@ -74,7 +74,7 @@ You'll also need to provision the device certificate — see [docs/aws_iot_provi
 ## Hardware highlights
 
 * 4-layer Altium PCB (signal / GND / 3V3 / signal)
-* ADM3251E isolated RS-485 with integrated isoPower DC/DC
+* ADM2587E isolated RS-485 with integrated isoPower DC/DC
 * PESD3V3L5UY TVS diodes on the A/B differential pair
 * Polyfuse on the 24 V input rail with reverse-polarity protection
 * JTAG (Cortex-10 pin) + SWD test points

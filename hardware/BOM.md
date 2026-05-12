@@ -4,7 +4,7 @@
 |--------------|---------------------|----------------------------------------------|-----|
 | U1           | STM32F103C8T6       | Cortex-M3 MCU (Modbus master + bridge logic) | 1   |
 | U2           | ESP32-WROOM-32E     | Wi-Fi/BLE MCU (MQTT-TLS to AWS)              | 1   |
-| U3           | ADM3251E            | Isolated RS-485 transceiver w/ iso-Power     | 1   |
+| U3           | ADM2587E            | Isolated RS-485 transceiver w/ iso-Power, 500 kbps, 2.5 kV | 1 |
 | U4           | LM2596S-5.0         | Switching buck regulator, 24 V → 5 V         | 1   |
 | U5           | AMS1117-3V3         | LDO 5 V → 3V3 (digital)                      | 1   |
 | U6           | AMS1117-3V3         | LDO 5 V → 3V3 (isolated side)                | 1   |
